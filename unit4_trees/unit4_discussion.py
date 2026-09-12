@@ -9,6 +9,11 @@ Binary Search Tree (BST).
 
 You will complete and modify the provided code while explaining
 key concepts in your own words using comments and output.
+
+Overview:
+Continuation of the Lair smart-home hub from the previous units. This unit
+will focus on storing the keycard registry. Every card ID the door controllers
+accept. Search answers if the card is registered. True unlocks, false denies.
 """
 
 
@@ -17,14 +22,18 @@ class Node:
         # TODO (Student):
         # Store the node's value and initialize references
         # to the left and right child nodes.
-        pass
+        # One card ID per node, both of the children start empty.
+        self.value = value
+        self.left = None
+        self.right = None
 
 
 class BST:
     def __init__(self):
         # TODO (Student):
         # Initialize an empty Binary Search Tree.
-        pass
+        # Root, the tree is empty until the first insert.
+        self.root = None
 
     def insert(self, value):
         """
@@ -37,7 +46,8 @@ class BST:
           whether a value is smaller or larger than the
           current node.
         """
-        pass
+        # Smaller goes left and larger goes right at each node.
+        self.root = self._insert_recursive(self.root, value)
 
     def _insert_recursive(self, node, value):
         """
@@ -50,7 +60,16 @@ class BST:
         - Insert larger values into the right subtree.
         - Return the updated node reference.
         """
-        pass
+        # Empty spot. This is where the value goes.
+        if node is None:
+            return Node(value)
+        if value < node.value:
+            node.left = self._insert_recursive(node.left, value)
+        elif value > node.value:
+            node.right = self._insert_recursive(node.right, value)
+        # Equal is duplicate and gets ignored, a card registered twice is still
+        # just one card.
+        return node
 
     def search(self, value):
         """
@@ -63,14 +82,23 @@ class BST:
         - Add comments explaining why BST search is often
           more efficient than linear search.
         """
-        pass
+        # Linear search checks every card. A BST compares at the root and only
+        # follows one side, so a balanced tree is O(log n) not O(n).
+        return self._search_recursive(self.root, value)
 
     def _search_recursive(self, node, value):
         """
         TODO (Student):
         Implement recursive BST search.
         """
-        pass
+        # Ran off the end of a branch, the card isn't registered.
+        if node is None:
+            return False
+        if value == node.value:
+            return True
+        if value < node.value:
+            return self._search_recursive(node.left, value)
+        return self._search_recursive(node.right, value)
 
     def inorder(self):
         """
@@ -78,7 +106,9 @@ class BST:
         Return a list containing the values from an
         in-order traversal.
         """
-        pass
+        values = []
+        self._inorder_recursive(self.root, values)
+        return values
 
     def _inorder_recursive(self, node, values):
         """
@@ -92,11 +122,17 @@ class BST:
         - Add comments explaining why this traversal
           produces sorted output in a BST.
         """
-        pass
-
+        if node is None:
+            return
+        # Left, then self, then right. Left is smaller and right is larger, that way the list
+        # comes out sorted.
+        self._inorder_recursive(node.left, values)
+        values.append(node.value)
+        self._inorder_recursive(node.right, values)
 
 def main():
     print("=== UNIT 4: BINARY SEARCH TREES ===")
+    print("Lair Keycard Registry")
 
     # ===============================
     # TODO (Student): BUILD A TREE
@@ -111,7 +147,14 @@ def main():
     # 5. Use comments to explain why a BST is efficient at reducing search space for each step.
 
     print("\n=== TREE CONSTRUCTION ===")
-    print("TODO: Create a BST and insert multiple values.")
+
+    # Middle value is first so both sides fill. Each insert compares at the root and drops into
+    # one side, the other side isn't touched.
+    registry = BST()
+    cards = [5000, 2500, 7500, 1250, 3750, 6250, 8750]
+    for card in cards:
+        registry.insert(card)
+    print(f"Inserted: {cards}")
 
     # ===============================
     # TODO (Student): IN-ORDER TRAVERSAL
@@ -124,7 +167,10 @@ def main():
     #    sorted output in a BST.
 
     print("\n=== IN-ORDER TRAVERSAL ===")
-    print("TODO: Display and explain traversal results.")
+
+    # Cards went in scrambled and come out sorted without sort() call. Left is smaller
+    # and right is larger at each node, so left, self, right is ascending order.
+    print(f"In-Order: {registry.inorder()}")
 
     # ===============================
     # TODO (Student): SEARCH TESTS
@@ -136,7 +182,15 @@ def main():
     # 3. Use comments to clearly explain the results.
 
     print("\n=== SEARCH TESTS ===")
-    print("TODO: Demonstrate BST searching.")
+
+    # Two registered cards, both are True. 5000 is the root so it is the one comparison.
+    print(f"Swipe 5000 - {registry.search(5000)} (registered, unlock)")
+    print(f"Swipe 8750 - {registry.search(8750)} (registered, unlock)")
+
+    # Two cards never registered. The search follows one path, runs off the end, and
+    # will return false without checking all 7.
+    print(f"Swipe 3000 - {registry.search(3000)} (unregistered, deny)")
+    print(f"Swipe 9999 - {registry.search(9999)} (unregistered, deny)")
 
     # ===============================
     # TODO (Student): EDGE CASES
@@ -153,8 +207,15 @@ def main():
     # Use comments to explain what happens and why.
 
     print("\n=== EDGE CASES ===")
-    print("TODO: Demonstrate and explain an edge case.")
 
+    # Empty Tree. No root, so in-order is [] and every search is false
+    # Nothing registered would mean every card is denied.
+    empty = BST()
+    print(f"Empty registry: inorder - {empty.inorder()}, search 5000 - {empty.search(5000)}")
+
+    # Duplicate. Inserting 2500 again is ignored, so in-order is unchanged.
+    registry.insert(2500)
+    print(f"Duplicate 2500: inorder - {registry.inorder()}")
 
 
 if __name__ == "__main__":
