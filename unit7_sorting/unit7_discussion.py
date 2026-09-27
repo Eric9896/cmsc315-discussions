@@ -28,7 +28,22 @@ def bubble_sort(lst):
     - Add meaningful comments.
 
     """
-    pass
+    # Copy first so the original alert board stays untouched
+    result = lst[:]
+    n = len(result)
+
+    # Each pass will bubble the bigggest remaining value to the end
+    for i in range(n - 1):
+        swapped = False
+        # The last i spots are already sorted, so they get skipped.
+        for j in range(n - 1 - i):
+            if result[j] > result[j + 1]:
+                result[j], result[j + 1] = result[j + 1], result[j]
+                swapped = True
+        # No swaps mean the list is sorted, stop early. Sorted input is O(n).
+        if not swapped:
+            break
+    return result
 
 
 def merge_sort(lst):
@@ -45,7 +60,17 @@ def merge_sort(lst):
     - Add meaningful comments.
 
     """
-    pass
+    # Base case. Zero or one alert got sorted already
+    if len(lst) <= 1:
+        return lst[:]
+
+    # Splits the board in half and sorts each half on its own.
+    mid = len(lst) // 2
+    left = merge_sort(lst[:mid])
+    right = merge_sort(lst[mid:])
+
+    # Stitch back the sorted halves together. log n levels of splits, O(n) works per level.
+    return merge(left, right)
 
 
 def merge(left, right):
@@ -60,11 +85,28 @@ def merge(left, right):
     - Return the merged sorted list.
     - Add meaningful comments.
     """
-    pass
+    result = []
+    i = j = 0
+
+    # Keeps ties to the original order, but takes the front value from either half, which
+    # is what makes the merge sort stable.
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+
+    # One half ran out first, whatever is left in the other half is already sorted.
+    result.extend(left[i:])
+    result.extend(right[j:])
+    return result
 
 
 def main():
     print("=== UNIT 7: SORTING ALGORITHMS ===")
+    print("Lair Crime Alert Board")
 
     # ===============================
     # TODO (Student): DATASET #1
@@ -78,7 +120,13 @@ def main():
     # 5. Clearly label and display all results.
 
     print("\n=== DATASET #1 ===")
-    print("TODO: Create an unsorted dataset and test both sorting algorithms.")
+
+    # The lair picked up crime alerts from all over the city tonight. Each one is a threat level
+    # from 1 to 10 in the order they came in. Sorted so the patrol can work up the list.
+    threats = [7, 2, 9, 4, 4, 10, 1, 6]
+    print(f"Threat levels: {threats}")
+    print(f'Bubble sort: {bubble_sort(threats)}')
+    print(f"Merge sort: {merge_sort(threats)}")
 
     # ===============================
     # TODO (Student): DATASET #2
@@ -91,7 +139,16 @@ def main():
     # 4. Compare the results.
 
     print("\n=== DATASET #2 ===")
-    print("TODO: Create a second dataset and compare sorting results.")
+
+    # Response times in minutes from the Lair to each crime scene. Mostly sorted already,
+    # one late alert came in out of place, which is where bubble sort early stop helps.
+    response = [3, 5, 8, 12, 15, 6, 20, 25]
+    print(f"Response times: {response}")
+    bubble = bubble_sort(response)
+    merged = merge_sort(response)
+    print(f"Bubble sort: {bubble}")
+    print(f"Merged sort: {merged}")
+    print(f"Same result: {bubble == merged}")
 
     # ===============================
     # TODO (Student): EDGE CASES
@@ -109,9 +166,22 @@ def main():
     # Explain what happens in each case.
 
     print("\n=== EDGE CASE TESTS ===")
-    print("TODO: Demonstrate and explain edge cases.")
 
+    # Quiet night, no alerts. Bubble sort never enters its loop and merge sort hits the base case.
+    print(f"Empty: {bubble_sort([])} - {merge_sort([])}")
 
+    # One alert pops in. Nothing to compare to, so both hands it straight back
+    print(f"Single: {bubble_sort([8])} - {merge_sort([8])}")
+
+    # Sorted already. Bubble sort makes one pass with no swaps and stops. Merge sort will still split
+    # and merge everything, O(n log n) either way.
+    print(f"Sorted: {bubble_sort([1, 2, 3, 4, 5])} - {merge_sort([1, 2, 3, 4, 5])}")
+
+    # Reverse sorted. Worst case for bubble sort, every pair swaps, O(n^2).
+    print(f"Reverse: {bubble_sort([5, 4, 3, 2, 1])} - {merge_sort([5, 4, 3, 2, 1])}")
+
+    # Duplicate threat levels. Both keeps every copy and nothing gets dropped.
+    print(f"Duplicates: {bubble_sort([6, 3, 6, 3, 6])} - {merge_sort([6, 3, 6, 3, 6])}")
 
 
 if __name__ == "__main__":
