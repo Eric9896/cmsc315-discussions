@@ -32,12 +32,32 @@ def bfs(graph, start):
     - Why neighbors are added to the queue.
     - How BFS differs from depth-first traversal.
     """
+    # Missing start node returns an empty list to avoid a KeyError
+    if start not in graph:
+        return []
 
-    pass
+    # A queue is first in, first out, so the drones cover every district next door before flying any further.
+    visited = {start}
+    queue = deque([start])
+    order = []
+
+    while queue:
+        node = queue.popleft()
+        order.append(node)
+        # Neighbors go to the back of the line, to make them wait for the current level to finish.
+        # Marked visited when queued, so a district with two streets sharing don't get added twice.
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+    # DFS would use a stack instead and chase one street to the end before backtracking.
+    return order
 
 
 def main():
     print("=== UNIT 8: BREADTH-FIRST SEARCH ===")
+    print("Lair Drone Dispatch")
 
     # ===============================
     # TODO (Student): CREATE A GRAPH
@@ -51,7 +71,19 @@ def main():
     # 5. Use comments to explain what the nodes and edges represent.
 
     print("\n=== GRAPH STRUCTURE ===")
-    print("TODO: Create and display a graph.")
+
+    # Nodes are city districts, edges are the streets a drone can fly between.
+    # Streets are two way, so each district lists the other one as well.
+    city = {
+        "Lair": ["Downtown", "Uptown"],
+        "Downtown": ["Lair", "Docks", "Old Town"],
+        "Uptown": ["Lair", "Old Town"],
+        "Docks": ["Downtown", "Warehouse"],
+        "Old Town": ["Downtown", "Uptown"],
+        "Warehouse": ["Docks"],
+    }
+    for district, streets in city.items():
+        print(f"{district} - {', '.join(streets)}")
 
     # ===============================
     # TODO (Student): BFS TRAVERSAL
@@ -66,7 +98,15 @@ def main():
     #    and demonstrate the updated traversal.
 
     print("\n=== BFS TRAVERSAL ===")
-    print("TODO: Perform and explain BFS traversal.")
+
+    # Drones launch from the Lair. Level 1 is Downtown and Uptown, level 2 are the Docks
+    # and Old Town, level 3 is the Warehouse. Closest districts are evaluated first.
+    print(f"Dispatch from Lair: {bfs(city, 'Lair')}")
+
+    # New area located off of the Docks, it is added into level 3 with the Warehouse
+    city["Harbor"] = ["Docks"]
+    city["Docks"].append("Harbor")
+    print(f"After adding Harbor: {bfs(city, 'Lair')}")
 
     # ===============================
     # TODO (Student): EDGE CASES
@@ -84,8 +124,17 @@ def main():
     # Explain what happens in each case.
 
     print("\n=== EDGE CASE TESTS ===")
-    print("TODO: Demonstrate and explain edge cases.")
 
+    # Different start. A drone operating out at the Warehouse makes its return back to the Lair
+    print(f"Start from the Warehouse: {bfs(city, 'Warehouse')}")
+
+    # Missing start node. There's no district named Suburbs, so the drone stays home.
+    print(f"Start from the Suburbs: {bfs(city, 'Suburbs')}")
+
+    # Disconnected graph. The Island has no streets, so the drones from the Lair never reach it.
+    city["Island"] = []
+    print(f"Island reached from Lair: {'Island' in bfs(city, 'Lair')}")
+    print(f"Start from Island: {bfs(city, 'Island')}")
 
 
 if __name__ == "__main__":
